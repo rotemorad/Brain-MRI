@@ -58,26 +58,25 @@ LesionVolumeResults = namedtuple('LesionVolumeResults', ['count_voxels', 'voxel_
 
 def calculate_lesion_volume(sub, study, labels_dic):
     # Load lesions MNI image
-    lesions_mni_img = nib.load(os.path.join(sub, study, "lesions_in_mni.nii.gz"))
+    full_path = os.path.join(sub, study, "lesions_in_mni.nii.gz")
+    lesions_mni_img = nib.load(full_path)
     lesion_data = lesions_mni_img.get_fdata()
 
     voxel_dims = lesions_mni_img.header["pixdim"][1:4]
     voxel_volume = np.prod(voxel_dims)
     
     # Calculate voxel counts for each label
-    voxel_counts = [0] * len(labels_dic)
-    for z in range(lesion_data.shape[0]):
-        for x in range(lesion_data.shape[1]):
-            for y in range(lesion_data.shape[2]):
-                if lesion_data[z, x, y] > 0:
-                    voxel_counts[int(lesion_data[z, x, y]) - 1] += 1
-    
+    max_label = len(labels_dic)
+    voxel_counts = np.zeros(max_label, dtype=int)
+    for label in range(1, max_label + 1):
+        voxel_counts[label - 1] = np.sum(lesion_data == label)
+
     # Calculate lesion volumes in mm^3
-    lesions_volume = [voxel_volume * count_voxel for count_voxel in voxel_counts]
+    lesions_volume = voxel_volume * voxel_counts
     total_lesion_volume = np.sum(lesions_volume)  # Total volume of all lesions
     
     # Calculate lesions volume percentage
-    lesions_volume_percent = [(volume * 100 / total_lesion_volume).round(3) for volume in lesions_volume]
+    lesions_volume_percent =np.round((lesions_volume * 100 / total_lesion_volume), 3 )
     
     # Create results named tuple
     results = LesionVolumeResults(voxel_counts, voxel_dims, lesions_volume, lesions_volume_percent)
