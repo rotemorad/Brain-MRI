@@ -2,6 +2,7 @@ import os
 import csv
 import numpy as np
 import nibabel as nib
+import pandas as pd
 import re
 from glob import glob
 from nipype.interfaces import fsl
@@ -109,12 +110,15 @@ def write_lesion_volume_results(sub, study, results, labels_dic):
 
 def main():
     labels_dic = load_labels(LABELS_FILE)
+     # Create an empty DataFrame to store the combined results
+    combined_results = pd.DataFrame(columns=["Subject", "Label"] + list(labels_dic.values()))
     print(labels_dic)
     for sub in find_sub_dirs(SUBJECTS_DIRECT):
         subname = sub.split('/')[-2]
         print(subname)
         for study in find_sub_dirs(sub):
-            if "lesion_volumes_by_location.csv" not in os.listdir(os.path.join(sub, study)):
+            csv_path = os.path.join(sub, study, "lesion_volumes_by_location.csv")
+            if not os.path.isfile(csv_path):
                 for MR_contrast in MRI_TYPES:
                     if MR_contrast + '.nii.gz' in os.listdir(os.path.join(sub, study)):
                         if MR_contrast == "FLAIR":
@@ -123,6 +127,24 @@ def main():
                         
                 print("Calculating lesion volume...")
                 calculate_lesion_volume(sub, study, labels_dic)
+            # Read the CSV for the current subject and study
+            df = pd.read_csv(csv_path)
+            
+            # Add a "Subject" column with the subject's name
+            df["Subject"] = subname
+            
+            # Append the results to the combined DataFrame
+            combined_results = combined_results = pd.concat([combined_results, df], ignore_index=True)
+            
+    # Group the combined results by "Label"
+    grouped_data = combined_results.groupby("Label")
+    
+    # Save the grouped results to separate CSV files for each label
+    for label, group in grouped_data:
+        label_csv_path = os.path.join(SUBJECTS_DIRECT, f"grouped_lesion_volumes_{label}.csv")
+        group.to_csv(label_csv_path, index=False)
+
+
 
 if __name__ == '__main__':
     main()
