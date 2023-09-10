@@ -1,0 +1,1 @@
+applywarp --in=/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/prepfa/mapflow/_prepfa0/DTI__FA_prep.nii.gz --ref=/usr/local/fsl/data/standard/FMRIB58_FA_1mm.nii.gz --out=/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/applywarp/mapflow/_applywarp0/DTI__FA_prep_warp.nii.gz --warp=/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss2/fnirt/mapflow/_fnirt0/DTI__FA_prep_fieldwarp.nii.gz

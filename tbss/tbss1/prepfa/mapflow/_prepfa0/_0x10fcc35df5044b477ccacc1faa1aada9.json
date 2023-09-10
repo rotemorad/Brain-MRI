@@ -1,0 +1,27 @@
+[
+    [
+        "in_file",
+        [
+            "//mnt/z/Rotem_Orad/DLB_P_H/new_subs/GANBAR_DORA/output/DTI__FA.nii.gz",
+            "79a0121c60d68ecb4e21e03d39ee99f8"
+        ]
+    ],
+    [
+        "op_string",
+        "-min 1 -ero -roi 1 128 1 128 1 74 0 1"
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "suffix",
+        "_prep"
+    ],
+    [
+        "needed_outputs",
+        [
+            "out_file"
+        ]
+    ]
+]

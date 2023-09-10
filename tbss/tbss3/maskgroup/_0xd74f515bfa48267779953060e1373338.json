@@ -1,0 +1,34 @@
+[
+    [
+        "in_file",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/mergefa/DTI__FA_prep_warp_merged.nii.gz",
+            "51b8869acd51235c0f68e32a29a1346e"
+        ]
+    ],
+    [
+        "in_file2",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/groupmask/DTI__FA_prep_warp_merged_mask.nii.gz",
+            "153b16034e2c408f88dd7eae2d4aaa11"
+        ]
+    ],
+    [
+        "op_string",
+        "-mas"
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "suffix",
+        "_masked"
+    ],
+    [
+        "needed_outputs",
+        [
+            "out_file"
+        ]
+    ]
+]

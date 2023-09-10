@@ -1,0 +1,1 @@
+fslmaths /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/maskgroup/DTI__FA_prep_warp_merged_masked.nii.gz -Tmean /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/meanfa/DTI__FA_prep_warp_merged_masked_mean.nii.gz

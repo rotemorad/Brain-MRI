@@ -1,0 +1,37 @@
+[
+    [
+        "dof",
+        12
+    ],
+    [
+        "in_file",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/prepfa/mapflow/_prepfa1/DTI__FA_prep.nii.gz",
+            "233fe3f3da08e68ee56d3d7ce7c66635"
+        ]
+    ],
+    [
+        "in_weight",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/getmask2/mapflow/_getmask21/DTI__FA_prep_mask_maths.nii.gz",
+            "a35a8963097c417f6cc2542103a5dbca"
+        ]
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "reference",
+        [
+            "/usr/local/fsl/data/standard/FMRIB58_FA_1mm.nii.gz",
+            "b7d0454790eb24126a7f92d5a70cb308"
+        ]
+    ],
+    [
+        "needed_outputs",
+        [
+            "out_matrix_file"
+        ]
+    ]
+]

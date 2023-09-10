@@ -1,0 +1,1 @@
+fslmaths //mnt/z/Rotem_Orad/DLB_P_H/new_subs/ROZEN-TAL_YOSEF/output/DTI__FA.nii.gz -min 1 -ero -roi 1 128 1 128 1 74 0 1 /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/prepfa/mapflow/_prepfa2/DTI__FA_prep.nii.gz

@@ -43,6 +43,6 @@ def perform_brain_extraction(directory, filename, frac=0.5):
     """
     btr = fsl.BET(in_file=os.path.join(directory, filename),
                   frac=frac,
-                  out_file=os.path.join(directory, 'nodif_brain.nii.gz'),
+                  out_file=os.path.join(directory, f'brain_{filename}'),
                   functional=True)
     btr.run()

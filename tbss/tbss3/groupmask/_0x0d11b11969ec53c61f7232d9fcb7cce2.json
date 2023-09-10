@@ -1,0 +1,31 @@
+[
+    [
+        "in_file",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/mergefa/DTI__FA_prep_warp_merged.nii.gz",
+            "51b8869acd51235c0f68e32a29a1346e"
+        ]
+    ],
+    [
+        "op_string",
+        "-max 0 -Tmin -bin"
+    ],
+    [
+        "out_data_type",
+        "char"
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "suffix",
+        "_mask"
+    ],
+    [
+        "needed_outputs",
+        [
+            "out_file"
+        ]
+    ]
+]

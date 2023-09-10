@@ -1,0 +1,32 @@
+[
+    [
+        "in_file",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/getmask1/mapflow/_getmask10/DTI__FA_prep_mask.nii.gz",
+            "3bf451993d9f94017f9e70e0e2b9dc20"
+        ]
+    ],
+    [
+        "op_string",
+        "-dilD -dilD -sub 1 -abs -add %s"
+    ],
+    [
+        "operand_files",
+        [
+            [
+                "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/getmask1/mapflow/_getmask10/DTI__FA_prep_mask.nii.gz",
+                "3bf451993d9f94017f9e70e0e2b9dc20"
+            ]
+        ]
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "needed_outputs",
+        [
+            "out_file"
+        ]
+    ]
+]

@@ -3,7 +3,7 @@ import glob
 import os
 import re
 import shutil
-from basic_functions import find_sub_dir, remove_files, convert2nii, brain_extraction
+from basic_functions import find_sub_dirs, remove_files, convert_dicom_to_nii, perform_brain_extraction
 import nibabel as nib
 from nipype.interfaces import fsl
 from nipype.interfaces.dcm2nii import Dcm2niix
@@ -22,9 +22,9 @@ from edited_tbss_workflow import create_tbss_all, create_tbss_non_FA
 
 # Run on the os fsl and freesurfer are installed
 # When finished run script remove_noise
-scripts_dir = '//mnt/z/Rotem_Orad/scripts/PhD'
+scripts_dir = '//mnt/z/Rotem_Orad/scripts'
 reference_dir = '//mnt/z'
-subjects_direct = '//mnt/z/Rotem_Orad/DLB_P_H/'
+subjects_direct = '//mnt/z/Rotem_Orad/DLB_P_H/new_subs'
 tbss_direct = os.path.join(scripts_dir, 'tbss')
 non_fa_direct = os.path.join(scripts_dir, 'tbss_non_FA')
 stat_dir = os.path.join(subjects_direct, 'stats')
@@ -78,6 +78,16 @@ regions = {
 
 }
 
+def perform_brain_extraction(directory, filename, frac=0.5):
+    """
+    Performs brain extraction on the given filename within the provided directory, creating skull-stripped brain masks.
+    """
+    btr = fsl.BET(in_file=os.path.join(directory, filename),
+                  frac=frac,
+                  out_file=os.path.join(directory, 'nodif_brain.nii.gz'),
+                  functional=True)
+    btr.run()
+
 
 def brain_extract(direct, filename, fract=0.4):
     """
@@ -122,22 +132,22 @@ def DTI(subjects_dir):
                 <basename>_S0 - raw T2 signal with no diffusion weighting
         """
     # loop over subjects folder
-    for sub in find_sub_dir(subjects_dir, path_avoid):
+    for sub in find_sub_dirs(subjects_dir, path_avoid):
         os.chdir(sub)
         remove_files(sub, ['JustName.mat', 'Analysis', 'Logs'])
         if not glob.glob("*mp2rage*.nii"):  # Checking there are no files matching the pattern
-            for file in find_sub_dir(sub):
+            for file in find_sub_dirs(sub):
                 if re.search(r'(Se[0-1][0-9]).+(mp2rage)+', file):  # if 'mp2rage' in file without Gd:
-                    convert2nii(file)  # All mp2rge files are converted so later we can rum remove noise script
+                    convert_dicom_to_nii(file)  # All mp2rge files are converted so later we can rum remove noise script
                 if not re.search(r'(Se[0-1][0-9]).+(mp2rage)+', file):  # if 'mp2rage' in file without Gd:
                     if re.search(r'(mprage)+', file):
-                        convert2nii(file)
+                        convert_dicom_to_nii(file)
                         os.rename(os.path.join(file, ".nii"), os.path.join('mp2rage_denoised.nii.gz'))
         if not glob.glob("*DTI*.nii"):
-            for file in find_sub_dir(sub):
+            for file in find_sub_dirs(sub):
                 # file.endswith('DFC/')
                 if re.search(r'DFC(_MIX)?/$', file):
-                    convert2nii(file)
+                    convert_dicom_to_nii(file)
         directory = os.path.join(sub, 'output')
         if not os.path.exists(directory):
             os.mkdir(os.path.join(sub, 'output'))
@@ -156,7 +166,9 @@ def DTI(subjects_dir):
                             shutil.copyfile(os.path.join(sub, file),
                                             os.path.join(sub, 'output', 'bvals.bval'))
         os.chdir(directory)
-        brain_extraction(directory, 'DTI4D.nii')
+
+        
+        perform_brain_extraction(directory, 'DTI4D.nii')
         # fsl.epi.EddyCorrect(in_file=os.path.join(directory, 'nodif_brain.nii.gz'),
         #                    out_file=os.path.join(directory, 'nodif_brain_res.nii.gz'), ref_num=0).run()
         DTIFit(directory)
@@ -223,7 +235,7 @@ def TBSS(subjects_dir):
     os.chdir(subjects_dir)
     if not os.path.exists(tbss_direct):
         os.mkdir(tbss_direct, ALL_PERMISSIONS)
-    for sub in find_sub_dir(subjects_dir, path_avoid):
+    for sub in find_sub_dirs(subjects_dir, path_avoid):
         directory = os.path.join(sub, 'output')
         fa_list.append(os.path.join(directory, 'DTI__FA.nii.gz'))
         md_list.append(os.path.join(directory, 'DTI__MD.nii.gz'))
@@ -231,7 +243,7 @@ def TBSS(subjects_dir):
         dr_list.append(os.path.join(directory, 'Dr.nii.gz'))
     os.chdir(tbss_direct)
     tbss_FA(fa_list, tbss_direct)
-    for subdir in find_sub_dir(os.path.join(tbss_direct, 'tbss2/fnirt/mapflow')):
+    for subdir in find_sub_dirs(os.path.join(tbss_direct, 'tbss2/fnirt/mapflow')):
         field_list.append(os.path.join(subdir, 'DTI__FA_prep_fieldwarp.nii.gz'))
     if not os.path.exists(non_fa_direct):
         os.mkdir(non_fa_direct)
@@ -272,7 +284,7 @@ def recon(subjects_dir):
     # change the current dir to the relevant dir
     if not os.path.exists(os.path.join(subjects_dir, 'FS_output')):
         shutil.copytree('//mnt/z/Rotem_Orad/FS_output', os.path.join(subjects_dir, 'FS_output'))
-    for sub in find_sub_dir(subjects_dir, path_avoid):
+    for sub in find_sub_dirs(subjects_dir, path_avoid):
         print(sub)
         os.chdir(sub)
         recon_all_func(sub)
@@ -453,7 +465,7 @@ def dce_summarize_results(direct, region_name, dce_map):
     """
 
     with open(os.path.join(direct, dce_map, '_mean_', region_name, '_no_thr_.txt'), 'w') as outfile:
-        for sub in find_sub_dir(direct, path_avoid):
+        for sub in find_sub_dirs(direct, path_avoid):
             with open(os.path.join(sub, dce_map, 'mean_DCE_', dce_map, '_', region_name, '.txt')) as infile:
                 outfile.write(infile.read())
 
@@ -461,7 +473,7 @@ def dce_summarize_results(direct, region_name, dce_map):
 def dce_summarize_volumes(direct, region_name):
     with open(os.path.join(direct, 'DCE', 'Volumes_MP2RAGE_no_thr', 'volume_', region_name, '_.txt'),
               'w') as outfile:
-        for sub in find_sub_dir(direct, path_avoid):
+        for sub in find_sub_dirs(direct, path_avoid):
             with open(
                     os.path.join(sub, 'DCE', 'Volumes_MP2RAGE_no_thr', region_name, '_cl_bin_mask', '.txt')) as infile:
                 outfile.write(infile.read())
@@ -470,7 +482,7 @@ def dce_summarize_volumes(direct, region_name):
 def dce_summarize_sub_volumes(direct, region_name, dce_map):
     with open(os.path.join(direct, 'DCE', 'Volumes_MP2RAGE_no_thr', dce_map, '_volume_', region_name, '_.txt'),
               'w') as outfile:
-        for sub in find_sub_dir(direct, path_avoid):
+        for sub in find_sub_dirs(direct, path_avoid):
             with open(
                     os.path.join(sub, 'DCE', 'Volumes_MP2RAGE_no_thr', 'Ktrans2N', '_', region_name, '_no_thr_bin_mask',
                                  '.txt')) as infile:
@@ -480,7 +492,7 @@ def dce_summarize_sub_volumes(direct, region_name, dce_map):
 def DCE(subjects_dir):
     # Make sure your DCE analysis is in a folder named DCE
 
-    for sub in find_sub_dir(subjects_dir):
+    for sub in find_sub_dirs(subjects_dir):
         try:
             os.mkdir(os.path.join(sub, 'DCE', 'Volumes_MP2RAGE_no_thr'))
         except FileExistsError:
@@ -550,13 +562,13 @@ def dti_summarize_results(direct, region_name, dti_map):
     txt file direct is the direct of the DTI files (for example: new_healthyControl/DTI)
     """
     with open(os.path.join(''.join([dti_map, '_median_', region_name, '_.txt'])), 'w') as outfile:
-        for sub in find_sub_dir(direct, path_avoid):
+        for sub in find_sub_dirs(direct, path_avoid):
             with open(os.path.join(sub, 'DTI', dti_map,
                                    ''.join(['median_', dti_map, '_', region_name, '.txt']))) as infile:
                 outfile.write(infile.read())
 
     with open(os.path.join(''.join([dti_map, '_mean_', region_name, '_.txt'])), 'w') as outfile:
-        for sub in find_sub_dir(direct, path_avoid):
+        for sub in find_sub_dirs(direct, path_avoid):
             with open(os.path.join(sub, 'DTI', dti_map,
                                    ''.join(['_mean_', dti_map, '_', region_name, '.txt']))) as infile:
                 outfile.write(infile.read())
@@ -565,7 +577,7 @@ def dti_summarize_results(direct, region_name, dti_map):
 def dti_summarize_volumes(direct, region_name, dti_map):
     with open(os.path.join(direct, 'DTI', dti_map, 'volume_', region_name, '_.txt'),
               'w') as outfile:
-        for sub in find_sub_dir(direct, path_avoid):
+        for sub in find_sub_dirs(direct, path_avoid):
             with open(
                     os.path.join(sub, 'DTI', dti_map, region_name, '_cl_bin_mask.txt')) as infile:
                 outfile.write(infile.read())
@@ -713,7 +725,7 @@ def calc_dti_in_mask(direct, region_name, dti_map, mask_file):
 
 
 def get_dti_vals(subjects_dir):
-    for sub in find_sub_dir(subjects_dir, path_avoid):
+    for sub in find_sub_dirs(subjects_dir, path_avoid):
         print(sub)
         try:
             os.mkdir(os.path.join(sub, 'DTI'))
@@ -729,8 +741,8 @@ def get_dti_vals(subjects_dir):
             pass
         '''
             #brain extraction to FA and MD maps'''
-        brain_extract(os.path.join(sub, 'output'), 'DTI__MD.nii.gz', 0.15)
-        brain_extract(os.path.join(sub, 'output'), 'DTI__FA.nii.gz', 0.15)
+        perform_brain_extraction(os.path.join(sub, 'output'), 'DTI__MD.nii.gz', 0.15)
+        perform_brain_extraction(os.path.join(sub, 'output'), 'DTI__FA.nii.gz', 0.15)
         if not os.listdir(os.path.join(sub, 'DTI', 'FA')) and not os.listdir(os.path.join(sub, 'DTI', 'MD')):
             # converting brain.mgz and aseg.mgz to nii files:
 

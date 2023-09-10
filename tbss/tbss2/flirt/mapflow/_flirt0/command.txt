@@ -1,0 +1,1 @@
+flirt -in /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/prepfa/mapflow/_prepfa0/DTI__FA_prep.nii.gz -ref /usr/local/fsl/data/standard/FMRIB58_FA_1mm.nii.gz -out DTI__FA_prep_flirt.nii.gz -omat DTI__FA_prep_flirt.mat -dof 12 -inweight /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/getmask2/mapflow/_getmask20/DTI__FA_prep_mask_maths.nii.gz

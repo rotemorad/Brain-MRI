@@ -1,0 +1,33 @@
+[
+    [
+        "field_file",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss2/fnirt/mapflow/_fnirt0/DTI__FA_prep_fieldwarp.nii.gz",
+            "1306dacdb542d2b81c9ac46974032183"
+        ]
+    ],
+    [
+        "in_file",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/prepfa/mapflow/_prepfa0/DTI__FA_prep.nii.gz",
+            "6d60bd1f7b7f103c5bba1cb97ac4c797"
+        ]
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "ref_file",
+        [
+            "/usr/local/fsl/data/standard/FMRIB58_FA_1mm.nii.gz",
+            "b7d0454790eb24126a7f92d5a70cb308"
+        ]
+    ],
+    [
+        "needed_outputs",
+        [
+            "out_file"
+        ]
+    ]
+]

@@ -1,0 +1,33 @@
+[
+    [
+        "dimension",
+        "t"
+    ],
+    [
+        "in_files",
+        [
+            [
+                "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/applywarp/mapflow/_applywarp0/DTI__FA_prep_warp.nii.gz",
+                "02cd5a82cf53f38c4b09ab81d2f8e15e"
+            ],
+            [
+                "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/applywarp/mapflow/_applywarp1/DTI__FA_prep_warp.nii.gz",
+                "73640efac2017a19e71fb11d492ef4b6"
+            ],
+            [
+                "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/applywarp/mapflow/_applywarp2/DTI__FA_prep_warp.nii.gz",
+                "605a6b1f78273a3d3ceb2aa5614ce64d"
+            ]
+        ]
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "needed_outputs",
+        [
+            "merged_file"
+        ]
+    ]
+]

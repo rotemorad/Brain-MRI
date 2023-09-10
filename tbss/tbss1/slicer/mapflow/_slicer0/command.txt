@@ -1,0 +1,1 @@
+slicer /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/prepfa/mapflow/_prepfa0/DTI__FA_prep.nii.gz -L  -A 1280 /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/slicer/mapflow/_slicer0/DTI__FA_prep.png

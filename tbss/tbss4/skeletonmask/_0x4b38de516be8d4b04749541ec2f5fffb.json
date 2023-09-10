@@ -1,0 +1,27 @@
+[
+    [
+        "in_file",
+        [
+            "/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/makeskeleton/DTI__FA_prep_warp_merged_masked_mean_skeleton.nii.gz",
+            "2b5647761786e0fd37485372cc73461e"
+        ]
+    ],
+    [
+        "op_string",
+        "-thr 0.2 -bin"
+    ],
+    [
+        "output_type",
+        "NIFTI_GZ"
+    ],
+    [
+        "suffix",
+        "_mask"
+    ],
+    [
+        "needed_outputs",
+        [
+            "out_file"
+        ]
+    ]
+]
