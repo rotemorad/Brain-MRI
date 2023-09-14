@@ -12,14 +12,18 @@ from edited_tbss_workflow import create_tbss_all, create_tbss_non_FA
 
 # Define directory paths
 scripts_dir = '//mnt/z/Rotem_Orad/scripts'
-subjects_direct = '//mnt/z/Rotem_Orad/DLB_P_H'
-tbss_direct = os.path.join(scripts_dir, 'tbss')
-non_fa_direct = os.path.join(scripts_dir, 'tbss_non_FA')
+subjects_direct = '//mnt/z/Rotem_Orad/DLB_P_H/new_subs'
+tbss_direct = os.path.join(scripts_dir, 'tbss/tbss')
+non_fa_direct = os.path.join(scripts_dir, 'tbss/tbss_non_FA')
 stat_dir = os.path.join(subjects_direct, 'stats')
 path_avoid = [
-    'tbss/', 'tbss_non_FA/', 'output', 'stats/', 'FS_output/',
+    'output', 'stats/', 'FS_output/',
     'previous_results/', 'fsaverage/', 'results_may_23/', 'new_subs/'
 ]
+
+# Constants
+ALL_PERMISSIONS = 0o777
+IMAGE_TYPES = ['FA', 'MD', 'Dr', 'Da']
 
 def preprocess_dti(subjects_dir):
     for sub in find_sub_dirs(subjects_dir, path_avoid):
@@ -28,13 +32,14 @@ def preprocess_dti(subjects_dir):
         print(subname)
 
         # Check for MP2RAGE files and convert them if needed
-        mp2rage_files = glob.glob("*mp2rage*.nii")
+        mp2rage_files = glob.glob("mp2rage_denoised.nii")
         if not mp2rage_files:
             for file in find_sub_dirs(sub):
                 # Check if the file matches the MP2RAGE naming pattern
                 if re.search(r'(Se[0-1][0-9]).+(mp2rage)+', file):
                     nii_filename = convert_dicom_to_nii(file)
                     mp2rage_files.append(nii_filename)
+                    # Run RemoveNoise
 
         # Check for DTI files and convert them if needed
         dti_files = glob.glob("*DTI*.nii")
@@ -126,29 +131,27 @@ def DTIFit(direct):
 
 # TBSS functions
 
-def tbss_FA(fa_list, base_direct):
+def tbss_FA(fa_list, base_dir):
     # Perform TBSS on FA images
-    tbss_wf = create_tbss_all('tbss', estimate_skeleton=True)
+    tbss_wf = create_tbss_all(base_dir=base_dir, estimate_skeleton=True)
     tbss_wf.inputs.inputnode.skeleton_thresh = 0.2
     tbss_wf.inputs.inputnode.fa_list = fa_list
-    tbss_wf.inputs.inputnode.base_dir = base_direct
     tbss_wf.run()
 
-def tbss_non_FA(parm_list, field_list, base_direct):
+def tbss_non_FA(parm_list, field_list, base_dir):
     # Perform TBSS on non-FA images
-    tbss_no_fa = create_tbss_non_FA()
+    tbss_no_fa = create_tbss_non_FA(base_dir=base_dir)
     tbss_no_fa.inputs.inputnode.file_list = parm_list
     tbss_no_fa.inputs.inputnode.field_list = field_list
     tbss_no_fa.inputs.inputnode.skeleton_thresh = 0.2
-    tbss_no_fa.inputs.inputnode.groupmask = os.path.join(base_direct, 'tbss3', 'groupmask',
+    tbss_no_fa.inputs.inputnode.groupmask = os.path.join(tbss_direct, 'tbss/tbss3', 'groupmask',
                                                          'DTI__FA_prep_warp_merged_mask.nii.gz')
-    tbss_no_fa.inputs.inputnode.meanfa_file = os.path.join(base_direct, 'tbss3', 'meanfa',
+    tbss_no_fa.inputs.inputnode.meanfa_file = os.path.join(tbss_direct, 'tbss/tbss3', 'meanfa',
                                                            'DTI__FA_prep_warp_merged_masked_mean.nii.gz')
-    tbss_no_fa.inputs.inputnode.all_FA_file = os.path.join(base_direct, 'tbss3', 'mergefa',
+    tbss_no_fa.inputs.inputnode.all_FA_file = os.path.join(tbss_direct,'tbss/tbss3', 'mergefa',
                                                            'DTI__FA_prep_warp_merged.nii.gz')
-    tbss_no_fa.inputs.inputnode.distance_map = os.path.join(base_direct, 'tbss4', 'distancemap',
+    tbss_no_fa.inputs.inputnode.distance_map = os.path.join(tbss_direct, 'tbss/tbss4', 'distancemap',
                                                             'DTI__FA_prep_warp_merged_mask_inv_dstmap.nii.gz')
-    tbss_no_fa.inputs.inputnode.base_dir = base_direct
     tbss_no_fa.run()
 
 def TBSS(subjects_dir):
@@ -160,9 +163,8 @@ def TBSS(subjects_dir):
     field_list = []
     
     os.chdir(subjects_dir)
-    
     if not os.path.exists(tbss_direct):
-        os.mkdir(tbss_direct, ALL_PERMISSIONS)
+        os.makedirs(tbss_direct, mode=ALL_PERMISSIONS)
 
 
     for sub in find_sub_dirs(subjects_dir, path_avoid):
@@ -175,15 +177,13 @@ def TBSS(subjects_dir):
     os.chdir(tbss_direct)
     tbss_FA(fa_list, tbss_direct)
 
+    map_dir = os.path.join(tbss_direct, 'tbss/tbss2/fnirt/mapflow')
 
-    for subdir in find_sub_dirs(os.path.join(tbss_direct, 'tbss2/fnirt/mapflow')):
+    for subdir in find_sub_dirs(map_dir):
         field_list.append(os.path.join(subdir, 'DTI__FA_prep_fieldwarp.nii.gz'))
-    
-    if not os.path.exists(non_fa_direct):
-        os.mkdir(non_fa_direct)
-        os.chdir(non_fa_direct)
-    
-    tbss_non_FA(md_list, field_list, tbss_direct)
+
+    for _list in [md_list, da_list, dr_list]:
+        tbss_non_FA(_list, field_list, tbss_direct)
     
     for folder_name, nii_pattern in [('MD', '*/*MD*.nii.gz'), ('Da', '*/*Da*.nii.gz'), ('Dr', '*/*Dr*.nii.gz')]:
         target_dir = os.path.join(non_fa_direct, folder_name)
@@ -193,9 +193,60 @@ def TBSS(subjects_dir):
         
         for path in glob.glob(nii_pattern):
             shutil.copyfile(path, os.path.join(target_dir, os.path.basename(path)))
+            print('copied')
 
 
-# Statistical analysis
+def create_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory, mode=0o777)
+
+def run_randomise(in_file, mask, tcon, design_mat, output_dir):
+    randomise = fsl.Randomise(
+        in_file=in_file,
+        mask=mask,
+        tcon=tcon,
+        design_mat=design_mat,
+        tfce2D=True
+    )
+    randomise.run()
+
+def stats(tbss_dir, non_fa_dir, stat_dir, subjects_direct):
+    """
+    Feeds the 4D projected FA data into GLM modeling and thresholding in order to find voxels which correlate
+    with the model.
+    """
+    create_directory(stat_dir)
+
+    type_file = ['FA', 'MD', 'Dr', 'Da']
+    files = [
+        os.path.join(tbss_dir, 'tbss4/projectfa/DTI__FA_prep_warp_merged_masked_skeletonised.nii.gz'),
+        os.path.join(non_fa_dir, 'projectfa/DTI__MD_warp_merged_masked_skeletonised.nii.gz'),
+        os.path.join(non_fa_dir, 'projectfa/Dr_warp_merged_masked_skeletonised.nii.gz'),
+        os.path.join(non_fa_dir, 'projectfa/Da_warp_merged_masked_skeletonised.nii.gz')
+    ]
+
+    for ftype in type_file:
+        create_directory(os.path.join(stat_dir, ftype))
+
+    count = 0
+    for file in files:
+        run_randomise(
+            in_file=file,
+            mask=os.path.join(tbss_dir, 'tbss4/skeletonmask/DTI__FA_prep_warp_merged_masked_mean_skeleton_mask.nii.gz'),
+            tcon=os.path.join(subjects_direct, 'stat.con'),
+            design_mat=os.path.join(subjects_direct, 'stat.mat'),
+            output_dir=os.path.join(stat_dir, type_file[count])
+        )
+
+        randomized_count = 0
+        for path in glob.glob(os.path.join(stat_dir, type_file[count], 'randomise*.nii.gz')):
+            copied_path = shutil.copyfile(path, os.path.join(stat_dir, type_file[count], os.path.basename(path)))
+            print(f"#{randomized_count} - copied file: {path} to: {copied_path}")
+            randomized_count += 1
+
+        count += 1
+        print(f"produced {randomized_count} files")
+
 
 def extract_values(direct):
     """Create an image of significant changes in TBSS."""
@@ -209,9 +260,15 @@ def extract_values(direct):
 # Main function
 
 def main():
-    # preprocess_dti(subjects_direct, )
+    # preprocess_dti(subjects_direct)
     TBSS(subjects_direct)
+    #stats(tbss_direct, non_fa_direct, stat_dir, subjects_direct)
     # extract_values(stat_dir)
 
 if __name__ == '__main__':
     main()
+
+
+
+
+

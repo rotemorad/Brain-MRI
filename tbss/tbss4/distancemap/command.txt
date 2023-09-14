@@ -1,1 +1,0 @@
-distancemap --out=/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss4/distancemap/DTI__FA_prep_warp_merged_mask_inv_dstmap.nii.gz --in=/mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss4/invertmask/DTI__FA_prep_warp_merged_mask_inv.nii.gz

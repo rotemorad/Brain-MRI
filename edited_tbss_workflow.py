@@ -387,7 +387,7 @@ def create_tbss_4_prestats(name='tbss_4_prestats'):
 
 # if doesnt work return base dir= os.getcwd()
 
-def create_tbss_all(name='tbss_all', estimate_skeleton=True, base_dir=os.getcwd()):
+def create_tbss_all(name='tbss', estimate_skeleton=True, base_dir=os.getcwd()):
     """Create a pipeline that combines create_tbss_* pipelines
 
     Example
@@ -504,7 +504,7 @@ ALL = tbss.create_tbss_all('tbss', estimate_skeleton=False, 'base_dir')    >>> t
     return tbss_all
 
 
-def create_tbss_non_FA(name='tbss_non_FA', base_dir=os.getcwd()):
+def create_tbss_non_FA(base_dir=os.getcwd()):
     """
     A pipeline that implement tbss_non_FA in FSL
 
@@ -567,7 +567,7 @@ def create_tbss_non_FA(name='tbss_non_FA', base_dir=os.getcwd()):
             use_cingulum_mask=True),
         name="projectfa")
 
-    tbss_non_FA = pe.Workflow(name=name, base_dir=base_dir)
+    tbss_non_FA = pe.Workflow(name='tbss_non_FA', base_dir=base_dir)
     tbss_non_FA.connect([
         (inputnode, applywarp, [
             ('file_list', 'in_file'),

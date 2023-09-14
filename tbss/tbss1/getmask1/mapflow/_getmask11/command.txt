@@ -1,1 +1,0 @@
-fslmaths /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/prepfa/mapflow/_prepfa1/DTI__FA_prep.nii.gz -bin /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss1/getmask1/mapflow/_getmask11/DTI__FA_prep_mask.nii.gz

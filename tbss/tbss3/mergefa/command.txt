@@ -1,1 +1,0 @@
-fslmerge -t DTI__FA_prep_warp_merged.nii.gz /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/applywarp/mapflow/_applywarp0/DTI__FA_prep_warp.nii.gz /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/applywarp/mapflow/_applywarp1/DTI__FA_prep_warp.nii.gz /mnt/z/Rotem_Orad/scripts/Brain-MRI/tbss/tbss3/applywarp/mapflow/_applywarp2/DTI__FA_prep_warp.nii.gz
