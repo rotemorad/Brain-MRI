@@ -5,65 +5,58 @@ import numpy as np
 import pandas as pd
 import nibabel as nib
 from glob import glob
-from nipype.interfaces import fsl
-from traits.trait_errors import TraitError
+from nipype.interfaces import fsl as fsl
+from fsl import ApplyMask, ImageStats, FAST, MathsCommand, DilateImage, UnaryMaths, BinaryMaths, Threshold, ErodeImage
 from itertools import combinations
+
+# Custom script imports
 from basic_functions import find_sub_dirs, convert_dicom_to_nii
-from nipype.interfaces.fsl import ApplyMask, ImageStats, FAST, MathsCommand, DilateImage, UnaryMaths, BinaryMaths, Threshold, ErodeImage
 
-# Paths
-scripts_dir = '//mnt/z/Rotem_Orad/scripts/PhD'
-reference_dir = '//mnt/z/Rotem_Orad/'
-subjects_direct = '//mnt/z/Rotem_Orad/NM_manual_masks/Updated/'
-path_avoid = ['nipype_bedpostx/', 'tbss/', 'tbss_non_FA/', 'stats/', 'FS_output/', 'Positive/', 'previous_results/', 'problematic/']
+# Directory paths
+scripts_dir = '/mnt/z/Rotem_Orad/scripts/PhD'
+reference_dir = '/mnt/z/Rotem_Orad/'
+subjects_dir = '/mnt/z/Rotem_Orad/NM_manual_masks/Updated/'
+exclude_paths = ['nipype_bedpostx/', 'tbss/', 'tbss_non_FA/', 'stats/', 'FS_output/', 
+                 'Positive/', 'previous_results/', 'problematic/']
 
-def brain_extract(direct, filename, fract=0.4):
+def brain_extract(directory, filename, frac_threshold=0.4):
     """
     Perform brain extraction using FSL's BET tool.
 
     Parameters:
-        direct (str): Directory path where the input file is located.
+        directory (str): Directory path where the input file is located.
         filename (str): Name of the input NIfTI file.
-        fract (float): Fractional intensity threshold (default is 0.4).
-
-    Returns:
-        None
+        frac_threshold (float): Fractional intensity threshold (default is 0.4).
     """
     btr = fsl.BET()
-    btr.inputs.in_file = os.path.join(direct, filename)
-    btr.inputs.frac = fract
-    btr.inputs.out_file = os.path.join(direct, f'brain_{filename}')
+    btr.inputs.in_file = os.path.join(directory, filename)
+    btr.inputs.frac = frac_threshold
+    btr.inputs.out_file = os.path.join(directory, f'brain_{filename}')
     btr.inputs.functional = True
     btr.run()
 
-def create_bi_sub_mask(sub, l_input, r_input, output="sliced_bi_sn_mask.nii.gz"):
+def create_bilateral_mask(sub, left_mask, right_mask, output_filename="sliced_bi_sn_mask.nii.gz"):
     """
-    Create a bilateral subcortical mask by combining left and right hemisphere masks.
+    Create a bilateral subcortical mask.
 
     Parameters:
         sub (str): Subject directory path.
-        l_input (str): Left hemisphere input NIfTI mask file name.
-        r_input (str): Right hemisphere input NIfTI mask file name.
-        output (str): Output NIfTI file name (default is "sliced_bi_sn_mask.nii.gz").
-
-    Returns:
-        None
+        left_mask (str): Left hemisphere input NIfTI mask file name.
+        right_mask (str): Right hemisphere input NIfTI mask file name.
+        output_filename (str): Output NIfTI file name (default is "sliced_bi_sn_mask.nii.gz").
     """
-    l_sn = np.asanyarray(nib.load(os.path.join(sub, r_input)).dataobj)
-    r_sn = np.asanyarray(nib.load(os.path.join(sub, l_input)).dataobj)
+    l_sn = np.asanyarray(nib.load(os.path.join(sub, right_mask)).dataobj)
+    r_sn = np.asanyarray(nib.load(os.path.join(sub, left_mask)).dataobj)
     bi_sn = l_sn + r_sn
     ni_img = nib.Nifti1Image(bi_sn, affine=np.eye(4))
-    nib.save(ni_img, output)
+    nib.save(ni_img, output_filename)
 
-def process_t1(sub):
+def process_t1_images(sub):
     """
-    Process T1-weighted images for a subject.
+    Process T1-weighted images for a given subject.
 
     Parameters:
         sub (str): Subject directory path.
-
-    Returns:
-        None
     """
     for mp_file in ['UNI', 'INV1', 'INV2']:
         if not glob("*" + mp_file + "*.nii"):
@@ -86,7 +79,7 @@ def process_neuromelanin(sub):
         None
     """
     if not glob("*gre_mt*.nii"):
-        for direct in find_sub_dirs(sub, path_avoid):
+        for direct in find_sub_dirs(sub, exclude_paths):
             if re.findall(r'.+(gre_mt)+', direct):
                 convert_dicom_to_nii(direct)
     if not glob('TE24.nii'):
@@ -202,9 +195,9 @@ def process_subject_space(sub):
     cut_da_image(sub, "brain_NM.nii.gz", "MIDBRAIN.nii.gz", "L_SN.nii.gz", "R_SN.nii.gz")
     cut_da_image(sub, "brain_anat.nii.gz", "MIDBRAIN.nii.gz", "L_SN.nii.gz", "R_SN.nii.gz", "sliced_anat.nii.gz")
     try:
-        create_bi_sub_mask(sub, "star_L_SN.nii.gz", "star_R_SN.nii.gz", "star_bi_sn_mask.nii.gz")
+        create_bilateral_mask(sub, "star_L_SN.nii.gz", "star_R_SN.nii.gz", "star_bi_sn_mask.nii.gz")
         cut_da_image(sub, "star_map2.nii", "star_bi_sn_mask.nii.gz", "star_L_SN.nii.gz", "star_R_SN.nii.gz", "sliced_star_sn.nii.gz")
-        create_bi_sub_mask(sub, "star_L_NC.nii.gz", "star_R_NC.nii.gz", "star_bi_nc_mask.nii.gz")
+        create_bilateral_mask(sub, "star_L_NC.nii.gz", "star_R_NC.nii.gz", "star_bi_nc_mask.nii.gz")
         cut_da_image(sub, "star_map2.nii", "star_bi_nc_mask.nii.gz", "star_L_NC.nii.gz", "star_R_NC.nii.gz", "sliced_star_nc.nii.gz")
         cut_da_image(sub, "star_map2.nii", "MIDBRAIN.nii.gz", "L_SN.nii.gz", "R_SN.nii.gz", "sliced_star_nm_sn.nii.gz", "star_nm")
     except FileNotFoundError:
@@ -266,7 +259,7 @@ def process_val_background(sub):
     SigBND the signal intensity in background ROI,
     STDBND the standard deviation in background ROI.
     """
-    create_bi_sub_mask(sub, "sliced__L_SN.nii.gz", "sliced__R_SN.nii.gz", "sliced_bi_sn_mask.nii.gz")
+    create_bilateral_mask(sub, "sliced__L_SN.nii.gz", "sliced__R_SN.nii.gz", "sliced_bi_sn_mask.nii.gz")
     if not os.path.isfile(os.path.join(sub, "sliced_background_mask.nii.gz")):
         print("Creating background mask by subtracting SN from the midbrain")
         midbrain = np.asanyarray(nib.load(os.path.join(sub, "sliced_midbrain.nii.gz")).dataobj)
@@ -424,31 +417,38 @@ def process_stat_two_timepoints(direct):
     df_all.to_excel(os.path.join(direct, "all_all.xlsx"))
 
 def main():
-    for sub in find_sub_dirs(subjects_direct, path_avoid):
-        subname = sub.split('/')[-2]
-        print(subname)
+    for subject in find_sub_dirs(subjects_dir, exclude_paths):
+        subject_name = os.path.basename(subject.rstrip('/'))
+        print(subject_name)
+        # Copying T2star images
         try:
-            if not os.path.exists(os.path.join(sub, "star_map2.nii")):
-                original = os.path.join('//mnt/z/Rotem_Orad/NM_subs_updated', subname,  "star_map2.nii")
-                target = os.path.join(sub, "star_map2.nii")
-                shutil.copyfile(original, target)
+            if not os.path.exists(os.path.join(subject, "star_map2.nii")):
+                    original = os.path.join('//mnt/z/Rotem_Orad/NM_subs_updated', subject_name,  "star_map2.nii")
+                    target = os.path.join(subject, "star_map2.nii")
+                    shutil.copyfile(original, target)
         except FileNotFoundError:
-            print(f'{subname} missing t2star')        
-        os.chdir(sub)
-        process_t1(sub)
-        process_neuromelanin(sub)
-        bet_neuromelanin_manual_masks(sub)
-        process_subject_space(sub)
-        neuromelanin_manual_masks_anat(sub)
-        process_val_background(sub)
-        process_val_nawm(sub)
+            print(f'{subject_name} missing t2star')
+        # Change to subject directory and process images
+        os.chdir(subject)
+        process_t1_images(subject)
+        process_neuromelanin(subject)
+        bet_neuromelanin_manual_masks(subject)
+        process_subject_space(subject)
+        neuromelanin_manual_masks_anat(subject)
+        process_val_background(subject)
+        process_val_nawm(subject)
+
+        # Error handling for T2star images
         try:
-            process_t2star_masks(sub, ["sliced__star_L_SN.nii.gz", "sliced__star_R_SN.nii.gz"], "sliced_star_sn.nii.gz")
-            process_t2star_masks(sub, ["sliced__star_L_NC.nii.gz", "sliced__star_R_NC.nii.gz"], "sliced_star_nc.nii.gz")
-            process_t2star_masks(sub, ["sliced_star_nm_L_SN.nii.gz", "sliced_star_nm_R_SN.nii.gz"], "sliced_star_nm_sn.nii.gz")
-        except TraitError:
+            process_t2star_masks(subject, ["sliced__star_L_SN.nii.gz", "sliced__star_R_SN.nii.gz"], "sliced_star_sn.nii.gz")
+            process_t2star_masks(subject, ["sliced__star_L_NC.nii.gz", "sliced__star_R_NC.nii.gz"], "sliced_star_nc.nii.gz")
+            process_t2star_masks(subject, ["sliced_star_nm_L_SN.nii.gz", "sliced_star_nm_R_SN.nii.gz"], "sliced_star_nm_sn.nii.gz")
+        except fsl.TraitError:
             print("T2star images not found, pass")
-    process_stat(subjects_direct)
+
+# Compile and process statistical data
+process_stat(subjects_dir)
+
 
 if __name__ == '__main__':
     main()
