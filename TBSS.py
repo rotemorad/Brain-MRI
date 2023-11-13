@@ -6,7 +6,7 @@ import shutil
 import nipype.interfaces.fsl as fsl
 
 
-from basic_functions import find_sub_dirs, convert_dicom_to_nii, perform_brain_extraction
+from utils import find_sub_dirs, convert_dicom_to_nii, perform_brain_extraction
 from edited_tbss_workflow import create_tbss_all, create_tbss_non_FA
 
 

@@ -3,7 +3,7 @@ import glob
 import os
 import re
 import shutil
-from basic_functions import find_sub_dirs, remove_files, convert_dicom_to_nii, perform_brain_extraction
+from utils import find_sub_dirs, remove_files, convert_dicom_to_nii, perform_brain_extraction
 import nibabel as nib
 from nipype.interfaces import fsl
 from nipype.interfaces.dcm2nii import Dcm2niix

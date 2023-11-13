@@ -10,7 +10,7 @@ from fsl import ApplyMask, ImageStats, FAST, MathsCommand, DilateImage, UnaryMat
 from itertools import combinations
 
 # Custom script imports
-from basic_functions import find_sub_dirs, convert_dicom_to_nii
+from utils import find_sub_dirs, convert_dicom_to_nii
 
 # Directory paths
 scripts_dir = '/mnt/z/Rotem_Orad/scripts/PhD'

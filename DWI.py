@@ -6,7 +6,7 @@ from glob import glob
 from nipype.interfaces import mrtrix3 as mrt
 
 # Custom module imports
-from basic_functions import find_sub_dirs, remove_files, convert_dicom_to_nii
+from utils import find_sub_dirs, remove_files, convert_dicom_to_nii
 
 # Paths
 scripts_dir = '//mnt/z/Rotem_Orad/scripts/PhD'
